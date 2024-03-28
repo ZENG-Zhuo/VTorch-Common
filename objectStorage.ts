@@ -66,7 +66,7 @@ export abstract class Database {
 
         const nodesPath = path.join(storagePath, "nodes");
         mkdirSync(nodesPath);
-        for (const entry of this.packages.entries()) {
+        for (const entry of this.nodes.entries()) {
             writeFileSync(
                 path.join(nodesPath, entry[0]),
                 JSON.stringify(entry[1].toJSON())
