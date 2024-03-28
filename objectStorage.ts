@@ -1,7 +1,7 @@
 import path, { basename } from "path";
 import { FileModuleNode, FolderModuleNode, NodeId } from "./pythonFileTypes";
 import { Package, PackageId } from "./pythonPackageType";
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { globSync } from "glob";
 const storagePath = "/home/zeng-zhuo/FYP/storage";
 type Node = FileModuleNode | FolderModuleNode;
@@ -56,7 +56,8 @@ export abstract class Database {
 
     static async save() {
         const packagesPath = path.join(storagePath, "packages");
-        mkdirSync(packagesPath);
+        if (!existsSync(packagesPath))
+            mkdirSync(packagesPath);
         for (const entry of this.packages.entries()) {
             writeFileSync(
                 path.join(packagesPath, entry[0]),
@@ -65,7 +66,8 @@ export abstract class Database {
         }
 
         const nodesPath = path.join(storagePath, "nodes");
-        mkdirSync(nodesPath);
+        if (!existsSync(nodesPath))
+            mkdirSync(nodesPath);
         for (const entry of this.nodes.entries()) {
             writeFileSync(
                 path.join(nodesPath, entry[0]),
