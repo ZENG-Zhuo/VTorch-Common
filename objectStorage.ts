@@ -107,4 +107,11 @@ export abstract class Database {
         if (result) return result;
         throw "Missing package" + id;
     }
+
+    static load(){
+        this.packages.clear();
+        this.nodes.clear();
+        this.packages = loadPackages();
+        this.nodes = loadNodes();
+    }
 }

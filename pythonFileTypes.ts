@@ -95,23 +95,15 @@ export class FolderModuleNode {
         return {
             path: this.path,
             name: this.name,
-            children: this.children.map((child) => Database.getNode(child).toJSON()),
+            // children: this.children.map((child) => Database.getNode(child).toJSON()),
+            children: this.children//.map((child) => Database.getNode(child).toJSON()),
         };
     }
 
     static fromJSON(json: any): FolderModuleNode {
         const folderModuleNode = new FolderModuleNode(json.path);
         folderModuleNode.name = json.name;
-        folderModuleNode.children = json.children.map((childData: any) => {
-            if (
-                childData.hasOwnProperty("classes") ||
-                childData.hasOwnProperty("functions")
-            ) {
-                return FileModuleNode.fromJSON(childData);
-            } else {
-                return FolderModuleNode.fromJSON(childData);
-            }
-        });
+        folderModuleNode.children = json.children;
         return folderModuleNode;
     }
 }
