@@ -220,26 +220,66 @@ export class TypeInfo {
 }
 
 export class ImportInfo {
-    private source: string;
-    private importees?: string[] | '*';
-    private as?: string;
+    private source: RelativePathInfo;
+    private importees?: string[] | "*";
+    private alias?: string;
 
-    constructor(source: string, importees?: string[] | '*', as?: string) {
+    constructor(
+        source: RelativePathInfo,
+        importees?: string[] | "*",
+        alias?: string
+    ) {
         this.source = source;
         this.importees = importees;
-        this.as = as;
+        this.alias = alias;
+    }
+
+    getSource() {
+        return this.source;
     }
 
     toJSON(): any {
         return {
-            source: this.source,
+            source: this.source.toJSON(),
             importees: this.importees,
-            as: this.as,
+            alias: this.alias,
         };
     }
 
     static fromJSON(json: any): ImportInfo {
-        const { source, importees, as } = json;
-        return new ImportInfo(source, importees, as);
+        const { source, importees, alias } = json;
+        return new ImportInfo(
+            RelativePathInfo.fromJSON(source),
+            importees,
+            alias
+        );
+    }
+}
+
+export class RelativePathInfo {
+    private level: number;
+    private source: string[];
+    private fromFile: boolean;
+    constructor(level: number, source: string[], fromFile: boolean) {
+        this.level = level;
+        this.source = source;
+        this.fromFile = fromFile;
+    }
+
+    getSource() {
+        return this.source;
+    }
+
+    toJSON(): any {
+        return {
+            level: this.level,
+            source: this.source,
+            fromFile: this.fromFile,
+        };
+    }
+
+    static fromJSON(json: any): RelativePathInfo {
+        const { level, source, fromFile } = json;
+        return new RelativePathInfo(level, source, fromFile);
     }
 }

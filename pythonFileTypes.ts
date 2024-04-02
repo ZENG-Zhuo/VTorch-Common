@@ -1,5 +1,5 @@
 import { Database } from "./objectStorage";
-import { ClassInfo, FuncInfo } from "./pythonObjectTypes";
+import { ClassInfo, FuncInfo, ImportInfo } from "./pythonObjectTypes";
 
 export function getBasename(filePath: string): string {
     const pathSegments = filePath.split("/");
@@ -17,17 +17,20 @@ export class FileModuleNode {
     name: string;
     classes: ClassInfo[];
     functions: FuncInfo[];
+    imports: ImportInfo[];
 
     constructor(
         path: string,
         name: string,
         classes: ClassInfo[],
-        functions: FuncInfo[]
+        functions: FuncInfo[],
+        imports: ImportInfo[]
     ) {
         this.path = path;
         this.name = name;
         this.classes = classes;
         this.functions = functions;
+        this.imports = imports;
     }
 
     toString(): string {
@@ -52,6 +55,7 @@ export class FileModuleNode {
             name: this.name,
             classes: this.classes.map((classInfo) => classInfo.toJSON()),
             functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
+            imports: this.imports.map((importInfo) => importInfo.toJSON()),
         };
     }
 
@@ -60,7 +64,8 @@ export class FileModuleNode {
             json.path,
             json.name,
             json.classes.map((classData: any) => ClassInfo.fromJSON(classData)),
-            json.functions.map((funcData: any) => FuncInfo.fromJSON(funcData))
+            json.functions.map((funcData: any) => FuncInfo.fromJSON(funcData)),
+            json.imports.map((funcData: any) => ImportInfo.fromJSON(funcData))
         );
         return fileModuleNode;
     }
@@ -70,11 +75,17 @@ export class FolderModuleNode {
     path: string;
     name: string;
     children: NodeId[];
+    classes: ClassInfo[];
+    functions: FuncInfo[];
+    imports: ImportInfo[];
 
     constructor(filePath: string) {
         this.path = filePath;
         this.name = getBasename(filePath);
         this.children = [];
+        this.classes = [];
+        this.functions = [];
+        this.imports = [];
     }
 
     toString(): string {
@@ -96,7 +107,10 @@ export class FolderModuleNode {
             path: this.path,
             name: this.name,
             // children: this.children.map((child) => Database.getNode(child).toJSON()),
-            children: this.children//.map((child) => Database.getNode(child).toJSON()),
+            children: this.children,
+            classes: this.classes.map((classInfo) => classInfo.toJSON()),
+            functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
+            imports: this.imports.map((importInfo) => importInfo.toJSON()),
         };
     }
 
@@ -104,6 +118,15 @@ export class FolderModuleNode {
         const folderModuleNode = new FolderModuleNode(json.path);
         folderModuleNode.name = json.name;
         folderModuleNode.children = json.children;
+        folderModuleNode.classes = json.classes.map((classData: any) =>
+            ClassInfo.fromJSON(classData)
+        );
+        folderModuleNode.functions = json.functions.map((funcData: any) =>
+            FuncInfo.fromJSON(funcData)
+        );
+        folderModuleNode.imports = json.imports.map((funcData: any) =>
+            ImportInfo.fromJSON(funcData)
+        );
         return folderModuleNode;
     }
 }
