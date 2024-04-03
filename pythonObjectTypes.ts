@@ -168,8 +168,8 @@ export class ParameterInfo {
 }
 
 export class TypeInfo {
-    private type: string;
-    private subtypes: TypeInfo[];
+    type: string;
+    subtypes: TypeInfo[];
 
     constructor(type: string, subtypes: TypeInfo[] = []) {
         this.type = type;
@@ -220,9 +220,9 @@ export class TypeInfo {
 }
 
 export class ImportInfo {
-    private source: RelativePathInfo;
-    private importees?: string[] | "*";
-    private alias?: string;
+    source: RelativePathInfo;
+    importees?: string[] | "*";
+    alias?: string;
 
     constructor(
         source: RelativePathInfo,
@@ -257,9 +257,9 @@ export class ImportInfo {
 }
 
 export class RelativePathInfo {
-    private level: number;
-    private source: string[];
-    private fromFile: boolean;
+    level: number;
+    source: string[];
+    fromFile: boolean;
     constructor(level: number, source: string[], fromFile: boolean) {
         this.level = level;
         this.source = source;

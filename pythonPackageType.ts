@@ -1,3 +1,4 @@
+import { Database } from "./objectStorage";
 import { NodeId } from "./pythonFileTypes";
 
 export type PackageId = string;
@@ -20,6 +21,13 @@ export class Package {
         this.name = name;
         this.version = version;
     }
+    getSubModule(relativePath: string[]): undefined | NodeId {
+        console.log("getting submodule: ", relativePath)
+        if (this.root)
+            return Database.getNode(this.root).getSubModule(relativePath);
+        return ;
+    }
+
     toJSON(): any {
         return {
             isFile: this.isFile,

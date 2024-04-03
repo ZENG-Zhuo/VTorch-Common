@@ -30,8 +30,7 @@ export function loadNodes(): Map<NodeId, Node> {
             let content = readFileSync(fileName, "utf8");
             let json = JSON.parse(content);
             if (
-                json.hasOwnProperty("classes") ||
-                json.hasOwnProperty("functions")
+                !json.hasOwnProperty("children")
             ) {
                 let node = FileModuleNode.fromJSON(json);
                 nodes.set(basename(fileName), node);

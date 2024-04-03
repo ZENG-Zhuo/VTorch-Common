@@ -1,3 +1,4 @@
+import { basename } from "path";
 import { Database } from "./objectStorage";
 import { ClassInfo, FuncInfo, ImportInfo } from "./pythonObjectTypes";
 
@@ -13,20 +14,26 @@ export function getBasename(filePath: string): string {
 
 export type NodeId = string;
 export class FileModuleNode {
+    id: NodeId;
     path: string;
+    relativePath: string[];
     name: string;
     classes: ClassInfo[];
     functions: FuncInfo[];
     imports: ImportInfo[];
 
     constructor(
+        id: NodeId,
         path: string,
+        relativePath: string[],
         name: string,
         classes: ClassInfo[],
         functions: FuncInfo[],
         imports: ImportInfo[]
     ) {
+        this.id = id;
         this.path = path;
+        this.relativePath = relativePath;
         this.name = name;
         this.classes = classes;
         this.functions = functions;
@@ -49,9 +56,30 @@ export class FileModuleNode {
         return result;
     }
 
+    public getSubModule(relativePath: string[]): undefined | NodeId {
+        console.log(
+            "getting submodule in file: ",
+            relativePath,
+            this.path,
+            this.name
+        );
+        let RP = relativePath;
+        if (RP.length > 0 && RP[0] === this.name) {
+            if (RP.length > 1) {
+                return undefined;
+            } else {
+                console.log("returning this!");
+                return this.id;
+            }
+        }
+        return;
+    }
+
     toJSON(): any {
         return {
+            id: this.id,
             path: this.path,
+            relativePath: this.relativePath,
             name: this.name,
             classes: this.classes.map((classInfo) => classInfo.toJSON()),
             functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
@@ -61,7 +89,9 @@ export class FileModuleNode {
 
     static fromJSON(json: any): FileModuleNode {
         const fileModuleNode = new FileModuleNode(
+            json.id,
             json.path,
+            json.relativePath,
             json.name,
             json.classes.map((classData: any) => ClassInfo.fromJSON(classData)),
             json.functions.map((funcData: any) => FuncInfo.fromJSON(funcData)),
@@ -72,16 +102,20 @@ export class FileModuleNode {
 }
 
 export class FolderModuleNode {
+    id: NodeId;
     path: string;
+    relativePath: string[];
     name: string;
     children: NodeId[];
     classes: ClassInfo[];
     functions: FuncInfo[];
     imports: ImportInfo[];
 
-    constructor(filePath: string) {
+    constructor(id: NodeId, filePath: string, relativePath: string[]) {
+        this.id = id;
         this.path = filePath;
-        this.name = getBasename(filePath);
+        this.relativePath = relativePath;
+        this.name = basename(filePath, ".py");
         this.children = [];
         this.classes = [];
         this.functions = [];
@@ -102,9 +136,31 @@ export class FolderModuleNode {
         return result;
     }
 
+    public getSubModule(relativePath: string[]): undefined | NodeId {
+        console.log("getting submodule in folder: ", relativePath, this.path);
+        let RP = relativePath;
+        if (RP.length > 0 && RP[0] === this.name) {
+            if (RP.length > 1) {
+                const nextId = this.children.find(
+                    (v, i) => Database.getNode(v).name === RP[1]
+                );
+                if (nextId) {
+                    return Database.getNode(nextId).getSubModule(
+                        relativePath.slice(1)
+                    );
+                }
+            } else {
+                return this.id;
+            }
+        }
+        return;
+    }
+
     toJSON(): any {
         return {
+            id: this.id,
             path: this.path,
+            relativePath: this.relativePath,
             name: this.name,
             // children: this.children.map((child) => Database.getNode(child).toJSON()),
             children: this.children,
@@ -115,7 +171,11 @@ export class FolderModuleNode {
     }
 
     static fromJSON(json: any): FolderModuleNode {
-        const folderModuleNode = new FolderModuleNode(json.path);
+        const folderModuleNode = new FolderModuleNode(
+            json.id,
+            json.path,
+            json.relativePath
+        );
         folderModuleNode.name = json.name;
         folderModuleNode.children = json.children;
         folderModuleNode.classes = json.classes.map((classData: any) =>
