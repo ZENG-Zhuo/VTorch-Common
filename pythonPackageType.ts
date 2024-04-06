@@ -21,11 +21,17 @@ export class Package {
         this.name = name;
         this.version = version;
     }
-    getSubModule(relativePath: string[]): undefined | NodeId {
+    getSubModule(
+        relativePath: string[],
+        fromFile: boolean
+    ): undefined | NodeId {
         // console.log("getting submodule: ", relativePath)
         if (this.root)
-            return Database.getNode(this.root).getSubModule(relativePath);
-        return ;
+            return Database.getNode(this.root).getSubModule(
+                relativePath,
+                fromFile
+            );
+        return;
     }
 
     toJSON(): any {

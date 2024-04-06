@@ -22,9 +22,9 @@ export class FileModuleNode {
     functions: FuncInfo[];
     imports: ImportInfo[];
     __all__?: string[];
-    importedModules: Map<string, NodeId> = new Map();
-    importedClasses: Map<string, NodeId> = new Map();
-    importedFunctions: Map<string, NodeId> = new Map();
+    importedModules: Map<string, [string, NodeId]> = new Map();
+    importedClasses: Map<string, [string, NodeId]> = new Map();
+    importedFunctions: Map<string, [string, NodeId]> = new Map();
     parsedImport: boolean = false;
 
     constructor(
@@ -34,7 +34,7 @@ export class FileModuleNode {
         name: string,
         classes: ClassInfo[],
         functions: FuncInfo[],
-        imports: ImportInfo[], 
+        imports: ImportInfo[],
         __all__?: string[]
     ) {
         this.id = id;
@@ -63,10 +63,22 @@ export class FileModuleNode {
         return result;
     }
 
-    public getSubModule(relativePath: string[]): undefined | NodeId {
+    public getSubModule(
+        relativePath: string[],
+        fromFile: boolean
+    ): undefined | NodeId {
         let RP = relativePath;
         if (RP.length > 0 && RP[0] === this.name) {
             if (RP.length > 1) {
+                if (!fromFile) {
+                    const pair = this.importedModules.get(RP[1]);
+                    return pair
+                        ? Database.getNode(pair[1]).getSubModule(
+                              relativePath.slice(1),
+                              fromFile
+                          )
+                        : undefined;
+                }
                 return undefined;
             } else {
                 // console.log("returning this!");
@@ -86,10 +98,10 @@ export class FileModuleNode {
             functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
             imports: this.imports.map((importInfo) => importInfo.toJSON()),
             __all__: this.__all__,
-            importedModules: Object.fromEntries(this.importedModules),
-            importedClasses: Object.fromEntries(this.importedClasses),
-            importedFunctions: Object.fromEntries(this.importedFunctions),
-            parsedImport: this.parsedImport
+            importedModules: Array.from(this.importedModules.entries()),
+            importedClasses: Array.from(this.importedClasses.entries()),
+            importedFunctions: Array.from(this.importedFunctions.entries()),
+            parsedImport: this.parsedImport,
         };
     }
 
@@ -104,9 +116,9 @@ export class FileModuleNode {
             json.imports.map((funcData: any) => ImportInfo.fromJSON(funcData)),
             json.__all__
         );
-        fileModuleNode.importedModules = new Map(Object.entries(json.importedModules));
-        fileModuleNode.importedClasses = new Map(Object.entries(json.importedClasses));
-        fileModuleNode.importedFunctions = new Map(Object.entries(json.importedFunctions));
+        fileModuleNode.importedModules = new Map(json.importedModules);
+        fileModuleNode.importedClasses = new Map(json.importedClasses);
+        fileModuleNode.importedFunctions = new Map(json.importedFunctions);
         fileModuleNode.parsedImport = json.parsedImport;
         return fileModuleNode;
     }
@@ -122,9 +134,9 @@ export class FolderModuleNode {
     functions: FuncInfo[];
     imports: ImportInfo[];
     __all__?: string[];
-    importedModules: Map<string, NodeId> = new Map();
-    importedClasses: Map<string, NodeId> = new Map();
-    importedFunctions: Map<string, NodeId> = new Map();
+    importedModules: Map<string, [string, NodeId]> = new Map();
+    importedClasses: Map<string, [string, NodeId]> = new Map();
+    importedFunctions: Map<string, [string, NodeId]> = new Map();
     parsedImport: boolean = false;
 
     constructor(id: NodeId, filePath: string, relativePath: string[]) {
@@ -152,17 +164,29 @@ export class FolderModuleNode {
         return result;
     }
 
-    public getSubModule(relativePath: string[]): undefined | NodeId {
-        console.log("getting submodule in folder: ", relativePath, this.path);
+    public getSubModule(
+        relativePath: string[],
+        fromFile: boolean
+    ): undefined | NodeId {
+        // console.log("getting submodule in folder: ", relativePath, this.path);
         let RP = relativePath;
         if (RP.length > 0 && RP[0] === this.name) {
             if (RP.length > 1) {
+                if (!fromFile) {
+                    const pair = this.importedModules.get(RP[1]);
+                    if (pair)
+                        return Database.getNode(pair[1]).getSubModule(
+                            relativePath.slice(1),
+                            fromFile
+                        );
+                }
                 const nextId = this.children.find(
-                    (v, i) => Database.getNode(v).name === RP[1]
+                    (v) => Database.getNode(v).name === RP[1]
                 );
                 if (nextId) {
                     return Database.getNode(nextId).getSubModule(
-                        relativePath.slice(1)
+                        relativePath.slice(1),
+                        fromFile
                     );
                 }
             } else {
@@ -184,10 +208,10 @@ export class FolderModuleNode {
             functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
             imports: this.imports.map((importInfo) => importInfo.toJSON()),
             __all__: this.__all__,
-            importedModules: Object.fromEntries(this.importedModules),
-            importedClasses: Object.fromEntries(this.importedClasses),
-            importedFunctions: Object.fromEntries(this.importedFunctions),
-            parsedImport: this.parsedImport
+            importedModules: Array.from(this.importedModules.entries()),
+            importedClasses: Array.from(this.importedClasses.entries()),
+            importedFunctions: Array.from(this.importedFunctions.entries()),
+            parsedImport: this.parsedImport,
         };
     }
 
@@ -208,9 +232,9 @@ export class FolderModuleNode {
         folderModuleNode.imports = json.imports.map((funcData: any) =>
             ImportInfo.fromJSON(funcData)
         );
-        folderModuleNode.importedModules = new Map(Object.entries(json.importedModules));
-        folderModuleNode.importedClasses = new Map(Object.entries(json.importedClasses));
-        folderModuleNode.importedFunctions = new Map(Object.entries(json.importedFunctions));
+        folderModuleNode.importedModules = new Map(json.importedModules);
+        folderModuleNode.importedClasses = new Map(json.importedClasses);
+        folderModuleNode.importedFunctions = new Map(json.importedFunctions);
         folderModuleNode.parsedImport = json.parsedImport;
         folderModuleNode.__all__ = json.__all__;
         return folderModuleNode;

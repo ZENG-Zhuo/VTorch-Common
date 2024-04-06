@@ -221,12 +221,12 @@ export class TypeInfo {
 
 export class ImportInfo {
     source: RelativePathInfo;
-    importees?: string[] | "*";
+    importees?: (string | [string, string])[] | "*";
     alias?: string;
 
     constructor(
         source: RelativePathInfo,
-        importees?: string[] | "*",
+        importees?: (string | [string, string])[] | "*",
         alias?: string
     ) {
         this.source = source;
