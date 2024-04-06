@@ -104,7 +104,8 @@ export abstract class Database {
     static getPackage(id: PackageId): Package {
         let result = this.packages.get(id);
         if (result) return result;
-        throw "Missing package" + id;
+        let e = new Error();
+        throw "Missing package" + id + e.stack;
     }
 
     static load(){

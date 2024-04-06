@@ -22,7 +22,7 @@ export class Package {
         this.version = version;
     }
     getSubModule(relativePath: string[]): undefined | NodeId {
-        console.log("getting submodule: ", relativePath)
+        // console.log("getting submodule: ", relativePath)
         if (this.root)
             return Database.getNode(this.root).getSubModule(relativePath);
         return ;
