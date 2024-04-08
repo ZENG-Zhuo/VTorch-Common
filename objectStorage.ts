@@ -1,7 +1,13 @@
 import path, { basename } from "path";
 import { FileModuleNode, FolderModuleNode, NodeId } from "./pythonFileTypes";
 import { Package, PackageId } from "./pythonPackageType";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import {
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    statSync,
+    writeFileSync,
+} from "fs";
 import { globSync } from "glob";
 const storagePath = "/home/zeng-zhuo/FYP/storage";
 type Node = FileModuleNode | FolderModuleNode;
@@ -19,6 +25,15 @@ export function loadPackages(): Map<PackageId, Package> {
     return packages;
 }
 
+export function nodeFromJSON(json: any): FolderModuleNode | FileModuleNode {
+    console.log("Creating new node from json id: ", json.id);
+    if (!json.hasOwnProperty("children")) {
+        return FileModuleNode.fromJSON(json);
+    } else {
+        return FolderModuleNode.fromJSON(json);
+    }
+}
+
 export function loadNodes(): Map<NodeId, Node> {
     let nodes = new Map<NodeId, Node>();
     const nodesPath = path.join(storagePath, "nodes");
@@ -27,17 +42,10 @@ export function loadNodes(): Map<NodeId, Node> {
         let files = globSync(path.join(nodesPath, "*"));
 
         for (const fileName of files) {
-            let content = readFileSync(fileName, "utf8");
-            let json = JSON.parse(content);
-            if (
-                !json.hasOwnProperty("children")
-            ) {
-                let node = FileModuleNode.fromJSON(json);
-                nodes.set(basename(fileName), node);
-            } else {
-                let node = FolderModuleNode.fromJSON(json);
-                nodes.set(basename(fileName), node);
-            }
+            const content = readFileSync(fileName, "utf8");
+            const json = JSON.parse(content);
+            const node = nodeFromJSON(json);
+            nodes.set(basename(fileName), node);
         }
     }
 
@@ -45,18 +53,16 @@ export function loadNodes(): Map<NodeId, Node> {
 }
 
 export abstract class Database {
-    private static packages: Map<PackageId, Package> = new Map<
-        PackageId,
-        Package
-    >();
+    static packages: Map<PackageId, Package> = new Map<PackageId, Package>();
 
-    private static nodes: Map<NodeId, FileModuleNode | FolderModuleNode> =
-        new Map<NodeId, FileModuleNode | FolderModuleNode>();
+    static nodes: Map<NodeId, FileModuleNode | FolderModuleNode> = new Map<
+        NodeId,
+        FileModuleNode | FolderModuleNode
+    >();
 
     static async save() {
         const packagesPath = path.join(storagePath, "packages");
-        if (!existsSync(packagesPath))
-            mkdirSync(packagesPath);
+        if (!existsSync(packagesPath)) mkdirSync(packagesPath);
         for (const entry of this.packages.entries()) {
             writeFileSync(
                 path.join(packagesPath, entry[0]),
@@ -65,8 +71,7 @@ export abstract class Database {
         }
 
         const nodesPath = path.join(storagePath, "nodes");
-        if (!existsSync(nodesPath))
-            mkdirSync(nodesPath);
+        if (!existsSync(nodesPath)) mkdirSync(nodesPath);
         for (const entry of this.nodes.entries()) {
             writeFileSync(
                 path.join(nodesPath, entry[0]),
@@ -108,10 +113,38 @@ export abstract class Database {
         throw "Missing package" + id + e.stack;
     }
 
-    static load(){
+    static load() {
         this.packages.clear();
         this.nodes.clear();
         this.packages = loadPackages();
         this.nodes = loadNodes();
+    }
+
+    static clear() {
+        this.packages.clear();
+        this.nodes.clear();
+    }
+
+    static toJSON(): any {
+        return {
+            packages: Array.from(this.packages.entries()).map((v) => {
+                return [v[0], v[1].toJSON()];
+            }),
+            nodes: Array.from(this.nodes.entries()).map((v) => {
+                return [v[0], v[1].toJSON()];
+            }),
+        };
+    }
+
+    static fromJSON(json: any): void {
+        const packages = json.packages;
+        const nodes = json.nodes;
+        packages.map((v: [PackageId, any]) => {
+            this.packages.set(v[0], Package.fromJSON(v[1]));
+        });
+
+        nodes.map((v: [NodeId, any]) =>
+            this.nodes.set(v[0], nodeFromJSON(v[1]))
+        );
     }
 }

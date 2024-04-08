@@ -46,6 +46,7 @@ export class Package {
     }
 
     static fromJSON(json: any): Package {
+        console.log("creating new package from json id: ",json.name);
         const packageObj = new Package(
             json.isFile,
             json.filePath,
