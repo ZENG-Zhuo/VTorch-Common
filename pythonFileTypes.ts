@@ -1,4 +1,3 @@
-import { basename } from "path";
 import { Database } from "./objectStorage";
 import { ClassInfo, FuncInfo, ImportInfo } from "./pythonObjectTypes";
 
@@ -143,7 +142,7 @@ export class FolderModuleNode {
         this.id = id;
         this.path = filePath;
         this.relativePath = relativePath;
-        this.name = basename(filePath, ".py");
+        this.name = getBasename(filePath);
         this.children = [];
         this.classes = [];
         this.functions = [];
