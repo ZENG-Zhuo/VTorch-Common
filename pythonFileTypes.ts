@@ -87,6 +87,19 @@ export class FileModuleNode {
         return;
     }
 
+    public getClass(name: string): ClassInfo | undefined {
+        const classInfo = this.classes.find((c) => c.name === name);
+        if (classInfo) {
+            return classInfo;
+        } else {
+            const importedClassInfo = this.importedClasses.get(name);
+            if (importedClassInfo) {
+                const node = Database.getNode(importedClassInfo[1]);
+                return node.getClass(importedClassInfo[0]);
+            }
+        }
+    }
+
     toJSON(): any {
         return {
             id: this.id,
@@ -193,6 +206,20 @@ export class FolderModuleNode {
             }
         }
         return;
+    }
+
+    public getClass(name: string): ClassInfo | undefined {
+        console.log("Getting class: ", name)
+        const classInfo = this.classes.find((c) => c.name === name);
+        if (classInfo) {
+            return classInfo;
+        } else {
+            const importedClassInfo = this.importedClasses.get(name);
+            if (importedClassInfo) {
+                const node = Database.getNode(importedClassInfo[1]);
+                return node.getClass(importedClassInfo[0]);
+            }
+        }
     }
 
     toJSON(): any {
