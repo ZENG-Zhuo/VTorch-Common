@@ -25,7 +25,6 @@ export class Package {
         relativePath: string[],
         fromFile: boolean
     ): undefined | NodeId {
-        // console.log("getting submodule: ", relativePath)
         if (this.root)
             return Database.getNode(this.root).getSubModule(
                 relativePath,

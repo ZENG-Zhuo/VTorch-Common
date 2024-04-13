@@ -80,7 +80,6 @@ export class FileModuleNode {
                 }
                 return undefined;
             } else {
-                // console.log("returning this!");
                 return this.id;
             }
         }
@@ -180,7 +179,6 @@ export class FolderModuleNode {
         relativePath: string[],
         fromFile: boolean
     ): undefined | NodeId {
-        // console.log("getting submodule in folder: ", relativePath, this.path);
         let RP = relativePath;
         if (RP.length > 0 && RP[0] === this.name) {
             if (RP.length > 1) {
