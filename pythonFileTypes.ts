@@ -12,11 +12,10 @@ export function getBasename(filePath: string): string {
 }
 
 export type NodeId = string;
-export class FileModuleNode {
+export abstract class Node {
     id: NodeId;
     path: string;
     relativePath: string[];
-    name: string;
     classes: ClassInfo[];
     functions: FuncInfo[];
     imports: ImportInfo[];
@@ -25,6 +24,45 @@ export class FileModuleNode {
     importedClasses: Map<string, [string, NodeId]> = new Map();
     importedFunctions: Map<string, [string, NodeId]> = new Map();
     parsedImport: boolean = false;
+    constructor(id: NodeId, path: string, relativePath: string[]) {
+        this.id = id;
+        this.path = path;
+        this.relativePath = relativePath;
+        this.classes = [];
+        this.functions = [];
+        this.imports = [];
+    }
+    toJSON(): any {
+        return {
+            id: this.id,
+            path: this.path,
+            relativePath: this.relativePath,
+            classes: this.classes.map((classInfo) => classInfo.toJSON()),
+            functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
+            imports: this.imports.map((importInfo) => importInfo.toJSON()),
+            __all__: this.__all__,
+            importedModules: Array.from(this.importedModules.entries()),
+            importedClasses: Array.from(this.importedClasses.entries()),
+            importedFunctions: Array.from(this.importedFunctions.entries()),
+            parsedImport: this.parsedImport,
+        };
+    }
+    public getClass(name: string): ClassInfo | undefined {
+        const classInfo = this.classes.find((c) => c.name === name);
+        if (classInfo) {
+            return classInfo;
+        } else {
+            const importedClassInfo = this.importedClasses.get(name);
+            if (importedClassInfo) {
+                const node = Database.getNode(importedClassInfo[1]);
+                return node.getClass(importedClassInfo[0]);
+            }
+        }
+    }
+}
+
+export class FileModuleNode extends Node {
+    name: string;
 
     constructor(
         id: NodeId,
@@ -36,9 +74,7 @@ export class FileModuleNode {
         imports: ImportInfo[],
         __all__?: string[]
     ) {
-        this.id = id;
-        this.path = path;
-        this.relativePath = relativePath;
+        super(id, path, relativePath);
         this.name = name;
         this.classes = classes;
         this.functions = functions;
@@ -86,33 +122,10 @@ export class FileModuleNode {
         return;
     }
 
-    public getClass(name: string): ClassInfo | undefined {
-        const classInfo = this.classes.find((c) => c.name === name);
-        if (classInfo) {
-            return classInfo;
-        } else {
-            const importedClassInfo = this.importedClasses.get(name);
-            if (importedClassInfo) {
-                const node = Database.getNode(importedClassInfo[1]);
-                return node.getClass(importedClassInfo[0]);
-            }
-        }
-    }
-
     toJSON(): any {
         return {
-            id: this.id,
-            path: this.path,
-            relativePath: this.relativePath,
+            ...super.toJSON(),
             name: this.name,
-            classes: this.classes.map((classInfo) => classInfo.toJSON()),
-            functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
-            imports: this.imports.map((importInfo) => importInfo.toJSON()),
-            __all__: this.__all__,
-            importedModules: Array.from(this.importedModules.entries()),
-            importedClasses: Array.from(this.importedClasses.entries()),
-            importedFunctions: Array.from(this.importedFunctions.entries()),
-            parsedImport: this.parsedImport,
         };
     }
 
@@ -135,30 +148,14 @@ export class FileModuleNode {
     }
 }
 
-export class FolderModuleNode {
-    id: NodeId;
-    path: string;
-    relativePath: string[];
+export class FolderModuleNode extends Node {
     name: string;
     children: NodeId[];
-    classes: ClassInfo[];
-    functions: FuncInfo[];
-    imports: ImportInfo[];
-    __all__?: string[];
-    importedModules: Map<string, [string, NodeId]> = new Map();
-    importedClasses: Map<string, [string, NodeId]> = new Map();
-    importedFunctions: Map<string, [string, NodeId]> = new Map();
-    parsedImport: boolean = false;
 
     constructor(id: NodeId, filePath: string, relativePath: string[]) {
-        this.id = id;
-        this.path = filePath;
-        this.relativePath = relativePath;
+        super(id, filePath, relativePath);
         this.name = getBasename(filePath);
         this.children = [];
-        this.classes = [];
-        this.functions = [];
-        this.imports = [];
     }
 
     toString(): string {
@@ -169,7 +166,6 @@ export class FolderModuleNode {
         let result = `${indentation}FolderModuleNode: ${this.name} (${this.path})\n`;
         indentation += "  ";
         for (const child of this.children) {
-            // result += child.toStringRecursive(indentation);
             result += Database.getNode(child).toStringRecursive(indentation);
         }
         return result;
@@ -206,36 +202,13 @@ export class FolderModuleNode {
         return;
     }
 
-    public getClass(name: string): ClassInfo | undefined {
-        console.log("Getting class: ", name)
-        const classInfo = this.classes.find((c) => c.name === name);
-        if (classInfo) {
-            return classInfo;
-        } else {
-            const importedClassInfo = this.importedClasses.get(name);
-            if (importedClassInfo) {
-                const node = Database.getNode(importedClassInfo[1]);
-                return node.getClass(importedClassInfo[0]);
-            }
-        }
-    }
+    
 
     toJSON(): any {
         return {
-            id: this.id,
-            path: this.path,
-            relativePath: this.relativePath,
+            ...super.toJSON(),
             name: this.name,
-            // children: this.children.map((child) => Database.getNode(child).toJSON()),
             children: this.children,
-            classes: this.classes.map((classInfo) => classInfo.toJSON()),
-            functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
-            imports: this.imports.map((importInfo) => importInfo.toJSON()),
-            __all__: this.__all__,
-            importedModules: Array.from(this.importedModules.entries()),
-            importedClasses: Array.from(this.importedClasses.entries()),
-            importedFunctions: Array.from(this.importedFunctions.entries()),
-            parsedImport: this.parsedImport,
         };
     }
 
