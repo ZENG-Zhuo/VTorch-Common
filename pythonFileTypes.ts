@@ -14,6 +14,7 @@ export function getBasename(filePath: string): string {
 export type NodeId = string;
 export abstract class Node {
     id: NodeId;
+    name: string;
     path: string;
     relativePath: string[];
     classes: ClassInfo[];
@@ -27,6 +28,7 @@ export abstract class Node {
     constructor(id: NodeId, path: string, relativePath: string[]) {
         this.id = id;
         this.path = path;
+        this.name = getBasename(path);
         this.relativePath = relativePath;
         this.classes = [];
         this.functions = [];
@@ -35,6 +37,7 @@ export abstract class Node {
     toJSON(): any {
         return {
             id: this.id,
+            name: this.name,
             path: this.path,
             relativePath: this.relativePath,
             classes: this.classes.map((classInfo) => classInfo.toJSON()),
@@ -62,20 +65,16 @@ export abstract class Node {
 }
 
 export class FileModuleNode extends Node {
-    name: string;
-
     constructor(
         id: NodeId,
         path: string,
         relativePath: string[],
-        name: string,
         classes: ClassInfo[],
         functions: FuncInfo[],
         imports: ImportInfo[],
         __all__?: string[]
     ) {
         super(id, path, relativePath);
-        this.name = name;
         this.classes = classes;
         this.functions = functions;
         this.imports = imports;
@@ -125,7 +124,6 @@ export class FileModuleNode extends Node {
     toJSON(): any {
         return {
             ...super.toJSON(),
-            name: this.name,
         };
     }
 
@@ -134,7 +132,6 @@ export class FileModuleNode extends Node {
             json.id,
             json.path,
             json.relativePath,
-            json.name,
             json.classes.map((classData: any) => ClassInfo.fromJSON(classData)),
             json.functions.map((funcData: any) => FuncInfo.fromJSON(funcData)),
             json.imports.map((funcData: any) => ImportInfo.fromJSON(funcData)),
@@ -149,12 +146,10 @@ export class FileModuleNode extends Node {
 }
 
 export class FolderModuleNode extends Node {
-    name: string;
     children: NodeId[];
 
     constructor(id: NodeId, filePath: string, relativePath: string[]) {
         super(id, filePath, relativePath);
-        this.name = getBasename(filePath);
         this.children = [];
     }
 
@@ -202,12 +197,9 @@ export class FolderModuleNode extends Node {
         return;
     }
 
-    
-
     toJSON(): any {
         return {
             ...super.toJSON(),
-            name: this.name,
             children: this.children,
         };
     }
