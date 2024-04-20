@@ -31,6 +31,13 @@ export type TabularDatasetSetting = {
     isNPY: boolean;
 };
 
+export const TabularSettingDefault = {
+    filePath: "",
+    targetColumn: "None",
+    delimiter: "\',\'",
+    isNPY: false,
+};
+
 export class TabularDatasetInfo extends DatasetInfo {
     config: TabularDatasetSetting;
     constructor(name: string, config: TabularDatasetSetting) {
