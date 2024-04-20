@@ -62,6 +62,19 @@ export abstract class Node {
             }
         }
     }
+
+    public getFunction(name: string): FuncInfo | undefined {
+        const funcInfo = this.functions.find((f) => f.name === name);
+        if (funcInfo) {
+            return funcInfo;
+        } else {
+            const importedFuncInfo = this.importedFunctions.get(name);
+            if (importedFuncInfo) {
+                const node = Database.getNode(importedFuncInfo[1]);
+                return node.getFunction(importedFuncInfo[0]);
+            }
+        }
+    }
 }
 
 export class FileModuleNode extends Node {
