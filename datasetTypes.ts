@@ -8,6 +8,15 @@ export class DatasetInfo {
     constructor(name: string) {
         this.name = name;
     }
+    toJSON(): any {
+        return {
+            name: this.name,
+        };
+    }
+
+    static fromJSON(json: any): DatasetInfo {
+        return new DatasetInfo(json.name);
+    }
 }
 
 export class TorchvisionDatasetInfo extends DatasetInfo {
@@ -22,6 +31,21 @@ export class TorchvisionDatasetInfo extends DatasetInfo {
         this.torchvisionDatasetName = torchvisionDatasetName;
         this.initFuncParams = initFuncParams;
     }
+    toJSON(): any {
+        return {
+            ...super.toJSON(),
+            torchvisionDatasetName: this.torchvisionDatasetName,
+            initFuncParams: this.initFuncParams,
+        };
+    }
+
+    static fromJSON(json: any): TorchvisionDatasetInfo {
+        return new TorchvisionDatasetInfo(
+            json.name,
+            json.torchvisionDatasetName,
+            json.initFuncParams
+        );
+    }
 }
 
 export type TabularDatasetSetting = {
@@ -34,7 +58,7 @@ export type TabularDatasetSetting = {
 export const TabularSettingDefault = {
     filePath: "",
     targetColumn: "None",
-    delimiter: "\',\'",
+    delimiter: "','",
     isNPY: false,
 };
 
@@ -43,5 +67,16 @@ export class TabularDatasetInfo extends DatasetInfo {
     constructor(name: string, config: TabularDatasetSetting) {
         super(name);
         this.config = config;
+    }
+
+    toJSON(): any {
+        return {
+            ...super.toJSON(),
+            config: this.config,
+        };
+    }
+
+    static fromJSON(json: any): TabularDatasetInfo {
+        return new TabularDatasetInfo(json.name, json.config);
     }
 }
