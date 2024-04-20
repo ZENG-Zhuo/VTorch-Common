@@ -5,17 +5,27 @@ export type TransformInstance = {
 
 export class DatasetInfo {
     name: string;
+    type: string;
     constructor(name: string) {
         this.name = name;
+        this.type = "None";
     }
     toJSON(): any {
         return {
             name: this.name,
+            type: this.type
         };
     }
 
     static fromJSON(json: any): DatasetInfo {
-        return new DatasetInfo(json.name);
+        switch (json.type) {
+            case "TorchvisionDatasetInfo":
+                return TorchvisionDatasetInfo.fromJSON(json);
+            case "TabularDatasetInfo":
+                return TabularDatasetInfo.fromJSON(json);
+            default:
+                throw new Error("Invalid dataset type");
+        }
     }
 }
 
@@ -30,6 +40,7 @@ export class TorchvisionDatasetInfo extends DatasetInfo {
         super(name);
         this.torchvisionDatasetName = torchvisionDatasetName;
         this.initFuncParams = initFuncParams;
+        this.type = "TorchvisionDatasetInfo";
     }
     toJSON(): any {
         return {
@@ -67,6 +78,7 @@ export class TabularDatasetInfo extends DatasetInfo {
     constructor(name: string, config: TabularDatasetSetting) {
         super(name);
         this.config = config;
+        this.type = "TabularDatasetInfo";
     }
 
     toJSON(): any {
