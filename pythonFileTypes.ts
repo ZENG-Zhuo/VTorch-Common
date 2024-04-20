@@ -63,17 +63,16 @@ export abstract class Node {
         }
     }
 
-    public getFunction(name: string): FuncInfo | undefined {
-        const funcInfo = this.functions.find((f) => f.name === name);
-        if (funcInfo) {
-            return funcInfo;
-        } else {
-            const importedFuncInfo = this.importedFunctions.get(name);
-            if (importedFuncInfo) {
-                const node = Database.getNode(importedFuncInfo[1]);
-                return node.getFunction(importedFuncInfo[0]);
-            }
+    public getFunction(name: string): FuncInfo[] {
+        const funcInfos: FuncInfo[] = [];
+        funcInfos.push(...this.functions.filter((f) => f.name === name));
+
+        const importedFuncInfo = this.importedFunctions.get(name);
+        if (importedFuncInfo) {
+            const node = Database.getNode(importedFuncInfo[1]);
+            funcInfos.push(...node.getFunction(importedFuncInfo[0]));
         }
+        return funcInfos;
     }
 }
 
