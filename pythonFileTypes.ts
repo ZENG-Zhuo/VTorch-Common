@@ -50,6 +50,42 @@ export abstract class Node {
             parsedImport: this.parsedImport,
         };
     }
+    public getClasses(): [string, ClassInfo][] {
+        const classes: [string, ClassInfo][] = this.classes.map((c) => [
+            c.name,
+            c,
+        ]);
+        Array.from(this.importedClasses, (nameAndTargetClass) => {
+            const targetModuleId = nameAndTargetClass[1][1];
+            const targetModule = Database.getNode(targetModuleId);
+            classes.push([
+                nameAndTargetClass[0],
+                targetModule.getClass(nameAndTargetClass[1][0])!,
+            ]);
+        });
+
+        return classes;
+    }
+
+    public getFunctions(): [string, FuncInfo[]][] {
+        const functions: Map<string, FuncInfo[]> = new Map();
+        this.functions.map((f) => {
+            if (!functions.get(f.name)) {
+                functions.set(f.name, this.getFunction(f.name));
+            }
+        });
+        Array.from(this.importedFunctions, (nameFuncSource) => {
+            if (!functions.get(nameFuncSource[0])) {
+                const sourceModule = Database.getNode(nameFuncSource[1][1]);
+                functions.set(
+                    nameFuncSource[0],
+                    sourceModule.getFunction(nameFuncSource[1][0])
+                );
+            }
+        });
+        return Array.from(functions.entries());
+    }
+
     public getClass(name: string): ClassInfo | undefined {
         const classInfo = this.classes.find((c) => c.name === name);
         if (classInfo) {
