@@ -83,22 +83,35 @@ export abstract class Node {
                 ...classInfo.functions.filter((f) => f.name === funcName)
             );
             if (funcInfos.length === 0 && classInfo.bases) {
-                if (classInfo.bases.length === 1) {
-                    funcInfos.push(
-                        ...this.getFuntionInClass(classInfo.bases[0], funcName)
-                    );
-                } else if (classInfo.bases.length > 1) {
-                    const bases = structuredClone(classInfo.bases);
-                    const baseClassName = bases.pop()!;
-                    const targetModuleId = this.getSubModule(
-                        [classInfo.name, ...bases],
-                        false
-                    );
-                    if (targetModuleId) {
-                        const targetModoule = Database.getNode(targetModuleId);
-                        funcInfos.push(...targetModoule.getFuntionInClass(baseClassName, funcName));
+                classInfo.bases.map((base) => {
+                    const baseClassPath = base.split(".");
+                    if (baseClassPath.length === 1) {
+                        funcInfos.push(
+                            ...this.getFuntionInClass(
+                                baseClassPath[0],
+                                funcName
+                            )
+                        );
+                    } else if (baseClassPath.length > 1) {
+                        const bases = structuredClone(baseClassPath);
+
+                        const baseClassName = bases.pop()!;
+                        const targetModuleId = this.getSubModule(
+                            [classInfo.name, ...bases],
+                            false
+                        );
+                        if (targetModuleId) {
+                            const targetModoule =
+                                Database.getNode(targetModuleId);
+                            funcInfos.push(
+                                ...targetModoule.getFuntionInClass(
+                                    baseClassName,
+                                    funcName
+                                )
+                            );
+                        }
                     }
-                }
+                });
             }
             return funcInfos;
         } else {
