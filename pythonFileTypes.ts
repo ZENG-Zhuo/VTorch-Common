@@ -74,6 +74,41 @@ export abstract class Node {
         }
         return funcInfos;
     }
+
+    public getFuntionInClass(className: string, funcName: string): FuncInfo[] {
+        const classInfo = this.getClass(className);
+        if (classInfo) {
+            const funcInfos: FuncInfo[] = [];
+            funcInfos.push(
+                ...classInfo.functions.filter((f) => f.name === funcName)
+            );
+            if (funcInfos.length === 0 && classInfo.bases) {
+                if (classInfo.bases.length === 1) {
+                    funcInfos.push(
+                        ...this.getFuntionInClass(classInfo.bases[0], funcName)
+                    );
+                } else if (classInfo.bases.length > 1) {
+                    const bases = structuredClone(classInfo.bases);
+                    const baseClassName = bases.pop()!;
+                    const targetModuleId = this.getSubModule(
+                        [classInfo.name, ...bases],
+                        false
+                    );
+                    if (targetModuleId) {
+                        const targetModoule = Database.getNode(targetModuleId);
+                        funcInfos.push(...targetModoule.getFuntionInClass(baseClassName, funcName));
+                    }
+                }
+            }
+            return funcInfos;
+        } else {
+            return [];
+        }
+    }
+    abstract getSubModule(
+        relativePath: string[],
+        fromFile: boolean
+    ): undefined | NodeId;
 }
 
 export class FileModuleNode extends Node {
