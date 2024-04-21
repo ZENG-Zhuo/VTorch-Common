@@ -1,3 +1,4 @@
+import { Database } from "./objectStorage";
 import { NodeId } from "./pythonFileTypes";
 
 export class ClassInfo {
@@ -15,6 +16,11 @@ export class ClassInfo {
 
     addFunction(functionInfo: FuncInfo) {
         this.functions.push(functionInfo);
+    }
+
+    getFunctions(name: string): FuncInfo[] {
+        const currentModule = Database.getNode(this.moduleId);
+        return currentModule.getFuntionInClass(this.name, name);
     }
 
     toString(): string {
