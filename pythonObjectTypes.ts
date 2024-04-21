@@ -1,10 +1,14 @@
+import { NodeId } from "./pythonFileTypes";
+
 export class ClassInfo {
     name: string;
     bases?: string[];
+    moduleId: NodeId;
     functions: FuncInfo[];
 
-    constructor(name: string, bases?: string[]) {
+    constructor(name: string, moduleId: NodeId, bases?: string[]) {
         this.name = name;
+        this.moduleId = moduleId;
         this.bases = bases;
         this.functions = [];
     }
@@ -28,12 +32,13 @@ export class ClassInfo {
         return {
             name: this.name,
             bases: this.bases,
+            moduleId: this.moduleId,
             functions: this.functions.map((funcInfo) => funcInfo.toJSON()),
         };
     }
 
     static fromJSON(json: any): ClassInfo {
-        const classInfo = new ClassInfo(json.name, json.bases);
+        const classInfo = new ClassInfo(json.name, json.moduleId, json.bases);
         classInfo.functions = json.functions.map((funcData: any) =>
             FuncInfo.fromJSON(funcData)
         );
