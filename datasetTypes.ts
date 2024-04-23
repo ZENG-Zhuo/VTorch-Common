@@ -7,7 +7,8 @@ export type DatasetType =
     | "None"
     | "TorchvisionDatasetInfo"
     | "TabularDatasetInfo"
-    | "SegmentationDatasetInfo";
+    | "SegmentationDatasetInfo"
+    | "CustomCodeDatasetInfo";
 
 export class DatasetInfo {
     name: string;
@@ -129,5 +130,34 @@ export class SegmentationDatasetInfo extends DatasetInfo {
 
     static fromJSON(json: any): SegmentationDatasetInfo {
         return new SegmentationDatasetInfo(json.name, json.config);
+    }
+}
+
+export type CustomCodeConfig = {
+    code: string;
+    datasetDefinition: string;
+};
+
+export const CutomCodeDefault: CustomCodeConfig = {
+    code: "# Build your custom dataset here",
+    datasetDefinition: "",
+};
+
+export class CustomCodeDatasetInfo extends DatasetInfo {
+    config: CustomCodeConfig;
+    constructor(name: string, config: CustomCodeConfig) {
+        super(name);
+        this.config = config;
+        this.type = "CustomCodeDatasetInfo";
+    }
+    toJSON(): any {
+        return {
+            ...super.toJSON(),
+            config: this.config,
+        };
+    }
+
+    static fromJSON(json: any): CustomCodeDatasetInfo {
+        return new CustomCodeDatasetInfo(json.name, json.config);
     }
 }
