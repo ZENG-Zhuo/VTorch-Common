@@ -30,8 +30,12 @@ export class ClassInfo {
     }
 
     getFunctions(name: string): FuncInfo[] {
-        const currentModule = Database.getNode(this.moduleId);
-        return currentModule.getFuntionInClass(this.name, name);
+        if (this.moduleId !== "UDB") {
+            const currentModule = Database.getNode(this.moduleId);
+            return currentModule.getFuntionInClass(this.name, name);
+        } else {
+            return this.functions.filter((f) => f.name.startsWith(name + "$"));
+        }
     }
 
     toString(): string {
