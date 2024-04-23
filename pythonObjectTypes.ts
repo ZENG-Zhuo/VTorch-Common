@@ -15,6 +15,17 @@ export class ClassInfo {
     }
 
     addFunction(functionInfo: FuncInfo) {
+        let i: number = 1;
+        while (true) {
+            if (
+                !this.functions.find(
+                    (f) => f.name === functionInfo.name + "$" + String(i)
+                )
+            )
+                break;
+            i++;
+        }
+        functionInfo.name = functionInfo.name + "$" + String(i);
         this.functions.push(functionInfo);
     }
 

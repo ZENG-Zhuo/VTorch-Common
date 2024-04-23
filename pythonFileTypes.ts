@@ -70,8 +70,9 @@ export abstract class Node {
     public getFunctions(): [string, FuncInfo[]][] {
         const functions: Map<string, FuncInfo[]> = new Map();
         this.functions.map((f) => {
-            if (!functions.get(f.name)) {
-                functions.set(f.name, this.getFunction(f.name));
+            const funcName = f.name.split("$")[0];
+            if (!functions.get(funcName)) {
+                functions.set(funcName, this.getFunction(funcName));
             }
         });
         Array.from(this.importedFunctions, (nameFuncSource) => {
@@ -101,7 +102,9 @@ export abstract class Node {
 
     public getFunction(name: string): FuncInfo[] {
         const funcInfos: FuncInfo[] = [];
-        funcInfos.push(...this.functions.filter((f) => f.name === name));
+        funcInfos.push(
+            ...this.functions.filter((f) => f.name.startsWith(name + "$"))
+        );
 
         const importedFuncInfo = this.importedFunctions.get(name);
         if (importedFuncInfo) {
@@ -116,7 +119,9 @@ export abstract class Node {
         if (classInfo) {
             const funcInfos: FuncInfo[] = [];
             funcInfos.push(
-                ...classInfo.functions.filter((f) => f.name === funcName)
+                ...classInfo.functions.filter((f) =>
+                    f.name.startsWith(funcName + "$")
+                )
             );
             if (funcInfos.length === 0 && classInfo.bases) {
                 classInfo.bases.map((base) => {
