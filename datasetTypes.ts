@@ -32,6 +32,8 @@ export class DatasetInfo {
                 return TabularDatasetInfo.fromJSON(json);
             case "SegmentationDatasetInfo":
                 return SegmentationDatasetInfo.fromJSON(json);
+            case "CustomCodeDatasetInfo":
+                return CustomCodeDatasetInfo.fromJSON(json);
             default:
                 throw new Error("Invalid dataset type");
         }
