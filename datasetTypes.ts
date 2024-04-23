@@ -3,9 +3,15 @@ export type TransformInstance = {
     parameters: (string | TransformInstance[] | undefined)[];
 };
 
+export type DatasetType =
+    | "None"
+    | "TorchvisionDatasetInfo"
+    | "TabularDatasetInfo"
+    | "SegmentationDatasetInfo";
+
 export class DatasetInfo {
     name: string;
-    type: string;
+    type: DatasetType;
     constructor(name: string) {
         this.name = name;
         this.type = "None";
@@ -13,16 +19,18 @@ export class DatasetInfo {
     toJSON(): any {
         return {
             name: this.name,
-            type: this.type
+            type: this.type,
         };
     }
 
     static fromJSON(json: any): DatasetInfo {
-        switch (json.type) {
+        switch (json.type as DatasetType) {
             case "TorchvisionDatasetInfo":
                 return TorchvisionDatasetInfo.fromJSON(json);
             case "TabularDatasetInfo":
                 return TabularDatasetInfo.fromJSON(json);
+            case "SegmentationDatasetInfo":
+                return SegmentationDatasetInfo.fromJSON(json);
             default:
                 throw new Error("Invalid dataset type");
         }
@@ -90,5 +98,36 @@ export class TabularDatasetInfo extends DatasetInfo {
 
     static fromJSON(json: any): TabularDatasetInfo {
         return new TabularDatasetInfo(json.name, json.config);
+    }
+}
+
+export type SegConfig = {
+    imgDir: string;
+    maskDir: string;
+    transforms: TransformInstance[];
+};
+
+export const SegDefault: SegConfig = {
+    imgDir: "",
+    maskDir: "",
+    transforms: [],
+};
+
+export class SegmentationDatasetInfo extends DatasetInfo {
+    config: SegConfig;
+    constructor(name: string, config: SegConfig) {
+        super(name);
+        this.config = config;
+        this.type = "SegmentationDatasetInfo";
+    }
+    toJSON(): any {
+        return {
+            ...super.toJSON(),
+            config: this.config,
+        };
+    }
+
+    static fromJSON(json: any): SegmentationDatasetInfo {
+        return new SegmentationDatasetInfo(json.name, json.config);
     }
 }
