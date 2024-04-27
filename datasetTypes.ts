@@ -141,8 +141,19 @@ export type CustomCodeConfig = {
 };
 
 export const CutomCodeDefault: CustomCodeConfig = {
-    code: "# Build your custom dataset here",
-    datasetDefinition: "",
+    code: `# Build your custom dataset here
+from torch.utils.data import Dataset
+class MyDataset(Dataset):
+    def __init__(self):
+        pass
+
+    def __len__(self):
+        pass
+
+    def __getitem__(self, idx):
+        pass
+`,
+    datasetDefinition: "MyDataset()",
 };
 
 export class CustomCodeDatasetInfo extends DatasetInfo {
